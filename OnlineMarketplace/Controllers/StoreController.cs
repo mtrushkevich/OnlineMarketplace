@@ -84,7 +84,7 @@ namespace OnlineMarketplace.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int?id, string[] selecteProducts)
+        public ActionResult Edit(int?id, int[] selectedProducts)
         {
             if (id == null)
             {
@@ -98,7 +98,7 @@ namespace OnlineMarketplace.Controllers
             {
                 try
                 {
-                    UpdateStoreProducts(selecteProducts, storeToUpdate);
+                    UpdateStoreProducts(selectedProducts, storeToUpdate);
 
                     db.SaveChanges();
                 }
@@ -164,35 +164,9 @@ namespace OnlineMarketplace.Controllers
             ViewBag.Products = viewModel;
         }
 
-        private void UpdateStoreProducts(string[] selectedProducts, Store storeToUpdate)
+        private void UpdateStoreProducts(int[] selectedProducts, Store storeToUpdate)
         {
-            if (selectedProducts == null)
-            {
-                storeToUpdate.Products = new List<Product>();
-                return;
-            }
-
-            var selectedProductsHS = new HashSet<string>(selectedProducts);
-            var storeProducts = new HashSet<int>(storeToUpdate.Products.Select(p => p.ProductId));
-
-            foreach (var product in db.Products)
-            {
-                if (selectedProductsHS.Contains(product.ProductId.ToString()))
-                {
-                    if (!storeProducts.Contains(product.ProductId))
-                    {
-                        storeToUpdate.Products.Add(product);
-                    }
-                }
-                else
-                {
-                    if (storeProducts.Contains(product.ProductId))
-                    {
-                        storeToUpdate.Products.Remove(product);
-                    }
-                }
-
-            }
+            storeToUpdate.Products = db.Products.Where(p => selectedProducts.Contains(p.ProductId)).ToList();
 
         }
     }
